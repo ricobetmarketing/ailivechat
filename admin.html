@@ -1,0 +1,374 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Live Chat Admin Dashboard</title>
+  <style>
+    :root {
+      --main-bg: #f4f7fc;
+      --sidebar-bg: #ffffff;
+      --content-bg: #ffffff;
+      --primary-color: #007bff;
+      --accent-color: #0056b3;
+      --text-color: #333;
+      --text-muted: #6c757d;
+      --border-color: #e0e0e0;
+      --table-header-bg: #f8f9fa;
+      --form-input-border: #ccc;
+      --danger-color: #dc3545;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--main-bg);
+      color: var(--text-color);
+      display: flex;
+    }
+
+    #sidebar {
+      width: 250px;
+      background-color: var(--sidebar-bg);
+      box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+    }
+    .sidebar-header {
+      font-size: 1.4rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--primary-color);
+      padding: 0 10px;
+    }
+    .sidebar-menu ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .sidebar-menu li {
+      padding: 15px 20px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      font-size: 1.05rem;
+      border-left: 4px solid transparent;
+    }
+    .sidebar-menu li.active {
+      background-color: #e7f0fc;
+      color: var(--primary-color);
+      border-left-color: var(--primary-color);
+    }
+    .sidebar-menu li:not(.active):hover {
+      background-color: #f8f9fa;
+    }
+
+    #main-content {
+      margin-left: 250px; /* Matches sidebar width */
+      padding: 30px;
+      width: calc(100% - 250px);
+      overflow-y: auto;
+      height: 100vh;
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 25px;
+      color: var(--primary-color);
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 10px;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .form-group input[type="text"],
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--form-input-border);
+      border-radius: 5px;
+      font-size: 1rem;
+      font-family: inherit;
+      margin-top: 5px;
+    }
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .form-actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.2s ease;
+      font-weight: 500;
+    }
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    .btn-primary:hover {
+      background-color: var(--accent-color);
+    }
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background-color: #5a6268;
+    }
+    .btn-danger {
+      background-color: var(--danger-color);
+      color: white;
+    }
+    .btn-danger:hover {
+      background-color: #c82333;
+    }
+    .btn-edit {
+      background-color: #ffc107;
+      color: #212529;
+    }
+    .btn-edit:hover {
+      background-color: #e0a800;
+    }
+
+    /* Tables */
+    .table-container {
+      margin-top: 20px;
+      overflow-x: auto; /* For responsiveness */
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background-color: var(--content-bg);
+      border-radius: 8px;
+      overflow: hidden; /* Ensures rounded corners */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    th {
+      background-color: var(--table-header-bg);
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+    .table-actions button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-right: 5px;
+      transition: color 0.2s ease;
+    }
+    .table-actions .btn-edit {
+      color: #ffc107;
+    }
+    .table-actions .btn-danger {
+      color: var(--danger-color);
+    }
+    .table-actions button:hover {
+      opacity: 0.8;
+    }
+    .keywords-display {
+        font-style: italic;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    /* AI Settings */
+    #ai-settings-section .form-group textarea {
+        min-height: 200px;
+    }
+    #ai-settings-section .form-group label {
+        font-size: 1.1rem;
+        color: var(--primary-color);
+    }
+
+    /* Helper classes for view toggling */
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <div class="sidebar-header">Admin Panel</div>
+    <nav class="sidebar-menu">
+      <ul>
+        <li data-view="faq-management" class="active">FAQ Management</li>
+        <li data-view="ai-settings">AI Settings</li>
+      </ul>
+    </nav>
+  </div>
+
+  <div id="main-content">
+    <section id="faq-management-section" class="view-section">
+      <h2 class="section-title">FAQ Management</h2>
+
+      <div class="form-container">
+        <h3 id="form-title">Add New FAQ</h3>
+        <form id="faq-form">
+          <input type="hidden" id="faq-id">
+          <div class="form-group">
+            <label for="faq-title">Title</label>
+            <input type="text" id="faq-title" required />
+          </div>
+          <div class="form-group">
+            <label for="faq-subtitle">Subtitle (Optional)</label>
+            <input type="text" id="faq-subtitle" />
+          </div>
+          <div class="form-group">
+            <label for="faq-answer">Answer</label>
+            <textarea id="faq-answer" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="faq-keywords">Keywords (comma-separated)</label>
+            <input type="text" id="faq-keywords" placeholder="e.g., cost, price, how much"/>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save FAQ</button>
+            <button type="button" class="btn btn-secondary" id="cancel-edit-btn">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="table-container">
+        <h3>Existing FAQs</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Subtitle</th>
+              <th>Answer Snippet</th>
+              <th>Keywords</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="faq-list-body">
+            <!-- FAQ rows will be inserted here by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="ai-settings-section" class="view-section hidden">
+      <h2 class="section-title">AI Settings</h2>
+
+      <div class="form-container">
+        <form id="ai-settings-form">
+          <div class="form-group">
+            <label for="system-prompt">System Prompt (AI Persona)</label>
+            <textarea id="system-prompt"></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save AI Settings</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'aiChatAdminData';
+
+    // --- DOM Elements ---
+    const sidebarMenuItems = document.querySelectorAll('.sidebar-menu li');
+    const faqManagementSection = document.getElementById('faq-management-section');
+    const aiSettingsSection = document.getElementById('ai-settings-section');
+
+    const faqForm = document.getElementById('faq-form');
+    const faqIdInput = document.getElementById('faq-id');
+    const faqTitleInput = document.getElementById('faq-title');
+    const faqSubtitleInput = document.getElementById('faq-subtitle');
+    const faqAnswerInput = document.getElementById('faq-answer');
+    const faqKeywordsInput = document.getElementById('faq-keywords');
+    const formTitle = document.getElementById('form-title');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const faqListBody = document.getElementById('faq-list-body');
+
+    const aiSettingsForm = document.getElementById('ai-settings-form');
+    const systemPromptInput = document.getElementById('system-prompt');
+
+    // --- Data Management ---
+    let appData = {
+      faqs: [],
+      aiSettings: {
+        systemPrompt: "You are a helpful AI assistant for our customer support. Be concise and polite. If you cannot answer a question thoroughly using general knowledge, state that you cannot provide specific details and suggest checking our FAQ or contacting human support."
+      }
+    };
+
+    function loadData() {
+      const storedData = localStorage.getItem(STORAGE_KEY);
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        // Merge safely, ensuring defaults if parts are missing
+        appData = {
+          faqs: parsedData.faqs || [],
+          aiSettings: {
+            systemPrompt: parsedData.aiSettings?.systemPrompt || appData.aiSettings.systemPrompt
+          }
+        };
+      }
+      renderFaqList();
+      renderAiSettings();
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    }
+
+    // --- FAQ Management Functions ---
+    function renderFaqList() {
+      faqListBody.innerHTML = ''; // Clear existing list
+      appData.faqs.sort((a, b) => a.id - b.id); // Sort by ID for consistency
+
+      if (appData.faqs.length === 0) {
+        faqListBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No FAQs found. Add one above!</td></tr>';
+        return;
+      }
+
+      appData.faqs.forEach(faq => {
+        const row = document.createElement('tr');
+        row.dataset.id = faq.id;
+
+        const keywordsString = Array.isArray(faq.keywords) ? faq.keywords.join(', ') : faq.keywords;
+
+        row.innerHTML = `
+          <td>${faq.title}</td>
+          <td>${faq.subtitle || ''}</td>
+          <td>${faq.answer.substring(0, 50)}${faq.answer.length > 50 ? '...' : ''}</td>
+          <td><span class="keywords-display">${keywordsString}</span></td>
+          <td class="table-actions">
